@@ -46,6 +46,8 @@ Optional engine controls map directly to API fields:
 - elevation mode
 - runtime gain and focus parameters
 
+For automated verification, `alloRoot` also supports `--headless --run-seconds <float>`. That mode uses the same wrapper and `EngineSession` calls, but skips the persistent AlloLib window loop.
+
 ## Wrapper Behavior
 
 `SpatialRootSessionWrapper` does four things:

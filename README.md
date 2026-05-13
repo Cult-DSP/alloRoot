@@ -42,7 +42,7 @@ If both are available, `SPATIAL_ROOT_DIR` wins.
 ```bash
 git clone https://github.com/Cult-DSP/alloRoot.git
 cd alloRoot
-git submodule update --init --recursive
+./init.sh
 ```
 
 ## Build
@@ -50,8 +50,7 @@ git submodule update --init --recursive
 `alloRoot` builds the wrapper app and Spatial Root's realtime engine library in one CMake build. No Spatial Root source edits are required.
 
 ```bash
-cmake -S . -B build
-cmake --build build
+./build.sh
 ```
 
 ## Run
@@ -59,7 +58,7 @@ cmake --build build
 The example needs a scene, a layout, and exactly one source mode.
 
 ```bash
-./build/alloRoot \
+./run.sh \
   --scene /path/to/scene.lusid.json \
   --layout /path/to/layout.json \
   --sources /path/to/source-package
@@ -68,7 +67,7 @@ The example needs a scene, a layout, and exactly one source mode.
 Or with ADM input:
 
 ```bash
-./build/alloRoot \
+./run.sh \
   --scene /path/to/scene.lusid.json \
   --layout /path/to/layout.json \
   --adm /path/to/input.wav
@@ -80,11 +79,24 @@ The repo root wrapper also works:
 ./alloRoot --scene /path/to/scene.lusid.json --layout /path/to/layout.json --sources /path/to/source-package
 ```
 
+Example helper scripts for the local smoke-test package:
+
+```bash
+./scripts/example-window.sh
+./scripts/example-headless.sh
+```
+
+These helper scripts expect the local verification assets in `build/test-package` and
+`build/test-layouts/stereo_zero_based.json`. Override them with:
+`ALLOWROOT_EXAMPLE_SCENE`, `ALLOWROOT_EXAMPLE_LAYOUT`, and
+`ALLOWROOT_EXAMPLE_SOURCES`.
+
 ## Useful Options
 
 ```bash
-./build/alloRoot --help
-./build/alloRoot --list-devices
+./run.sh --help
+./run.sh --list-devices
+./run.sh --headless --run-seconds 1 --scene /path/to/scene.lusid.json --layout /path/to/layout.json --sources /path/to/source-package
 ```
 
 Other supported flags:
@@ -98,6 +110,8 @@ Other supported flags:
 - `--focus <float>`
 - `--speaker-mix <dB>`
 - `--sub-mix <dB>`
+- `--headless`
+- `--run-seconds <float>`
 
 ## Controls
 
@@ -126,6 +140,9 @@ This example stays on the public API boundary rather than reaching into GUI-spec
 
 - `loadScene failed` or `applyLayout failed`
   Check the input paths and inspect the emitted failure diagnostics.
+
+- `start failed` with insufficient output channels
+  Spatial Root derives final output width as `max(channel) + 1`. Many example layouts are 1-based, so a stereo layout using channels `1` and `2` requires a 3-channel device path.
 
 - nested Spatial Root submodules are missing
   Run `git submodule update --init --recursive`.

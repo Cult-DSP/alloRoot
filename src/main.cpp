@@ -2,14 +2,18 @@
 #include "BuildConfig.hpp"
 
 #include <algorithm>
+#include <chrono>
 #include <cstdlib>
 #include <iostream>
 #include <string>
+#include <thread>
 
 namespace {
 
 struct Options {
     SpatialRootSessionWrapper::SessionConfig sessionConfig;
+    bool headless = false;
+    double runSeconds = 0.0;
 };
 
 std::string getArgString(int argc, char* argv[], const std::string& flag) {
@@ -81,6 +85,8 @@ void printUsage(const char* programName) {
         << "\n"
         << "Utility:\n"
         << "  --list-devices           List output devices and exit\n"
+        << "  --headless               Run the wrapper without opening the host window\n"
+        << "  --run-seconds <float>    Headless runtime duration before shutdown\n"
         << "  --help                   Print this message\n";
 }
 
@@ -112,6 +118,8 @@ Options parseArgs(int argc, char* argv[]) {
         getArgFloat(argc, argv, "--sub-mix", options.sessionConfig.runtimeParams.subMixDb);
 
     options.sessionConfig.listDevicesOnly = hasArg(argc, argv, "--list-devices");
+    options.headless = hasArg(argc, argv, "--headless");
+    options.runSeconds = getArgFloat(argc, argv, "--run-seconds", 0.0f);
     return options;
 }
 
@@ -130,6 +138,26 @@ int main(int argc, char* argv[]) {
 
     SpatialRootSessionWrapper wrapper(options.sessionConfig);
     if (wrapper.printDevicesIfRequested()) {
+        return 0;
+    }
+
+    if (options.headless) {
+        if (!wrapper.start()) {
+            return 1;
+        }
+
+        const auto startedAt = std::chrono::steady_clock::now();
+        while (options.runSeconds > 0.0) {
+            wrapper.update();
+            const auto elapsed =
+                std::chrono::duration<double>(std::chrono::steady_clock::now() - startedAt).count();
+            if (elapsed >= options.runSeconds) {
+                break;
+            }
+            std::this_thread::sleep_for(std::chrono::milliseconds(16));
+        }
+
+        wrapper.shutdown();
         return 0;
     }
 
