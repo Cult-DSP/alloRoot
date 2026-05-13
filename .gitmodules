@@ -1,0 +1,4 @@
+[submodule "thirdparty/spatialroot"]
+	path = thirdparty/spatialroot
+	url = https://github.com/Cult-DSP/spatialroot.git
+	branch = devel
